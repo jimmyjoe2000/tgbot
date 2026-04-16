@@ -34,16 +34,20 @@ class Customer(TimestampMixin, Base):
     support_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    domains: Mapped[list[Domain]] = relationship(back_populates="customer", cascade="all, delete-orphan")
-    servers: Mapped[list[Server]] = relationship(back_populates="customer", cascade="all, delete-orphan")
+    domains: Mapped[list[Domain]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
+    )
+    servers: Mapped[list[Server]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
+    )
     payment_orders: Mapped[list[PaymentOrder]] = relationship(
-        back_populates="customer", cascade="all, delete-orphan"
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
     )
     deployment_tasks: Mapped[list[DeploymentTask]] = relationship(
-        back_populates="customer", cascade="all, delete-orphan"
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
     )
     notifications: Mapped[list[NotificationLog]] = relationship(
-        back_populates="customer", cascade="all, delete-orphan"
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
     )
 
 
@@ -80,7 +84,7 @@ class Server(TimestampMixin, Base):
 
     customer: Mapped[Customer] = relationship(back_populates="servers")
     deployment_tasks: Mapped[list[DeploymentTask]] = relationship(
-        back_populates="server", cascade="all, delete-orphan"
+        back_populates="server", cascade="all, delete-orphan", passive_deletes=True
     )
 
 
