@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import JSON, Date, DateTime, ForeignKey, Numeric, String, Text, func
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, Numeric, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -27,11 +27,16 @@ class Customer(TimestampMixin, Base):
     code: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(128), unique=True, index=True)
     status: Mapped[str] = mapped_column(String(32), default="active")
+    telegram_id: Mapped[str | None] = mapped_column(String(64), unique=True, nullable=True, index=True)
+    server_ip: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    domain_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    expires_on: Mapped[date | None] = mapped_column(Date, nullable=True)
     brand_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     logo_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     theme_primary: Mapped[str] = mapped_column(String(32), default="#dc2626")
     theme_secondary: Mapped[str] = mapped_column(String(32), default="#111827")
     support_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     domains: Mapped[list[Domain]] = relationship(
@@ -47,6 +52,9 @@ class Customer(TimestampMixin, Base):
         back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
     )
     notifications: Mapped[list[NotificationLog]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
+    )
+    reminder_logs: Mapped[list[ReminderLog]] = relationship(
         back_populates="customer", cascade="all, delete-orphan", passive_deletes=True
     )
 
@@ -142,3 +150,33 @@ class NotificationLog(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String(32), default="queued")
 
     customer: Mapped[Customer | None] = relationship(back_populates="notifications")
+
+
+class ReminderTemplate(Base):
+    __tablename__ = "reminder_templates"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
+    days_before: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    template: Mapped[str] = mapped_column(Text, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class ReminderLog(Base):
+    __tablename__ = "reminder_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    customer_id: Mapped[str | None] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    days_before: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    sent_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    status: Mapped[str] = mapped_column(String(32), default="sent", nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+
+    customer: Mapped[Customer | None] = relationship(back_populates="reminder_logs")

@@ -105,6 +105,13 @@ py -m pip install --user -e .
 docker compose up --build
 ```
 
+也可以直接执行一键部署脚本：
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
 4. 常用验证接口
 
 - `GET /api/v1/health`
@@ -128,6 +135,60 @@ X-Admin-Token: <your-admin-token>
 
 ```text
 /add 客户A 1.1.1.1 example.com 2027-01-01
+```
+
+## API 文档
+
+- Swagger UI：`/docs`
+- OpenAPI JSON：`/openapi.json`
+- ReDoc：`/redoc`
+
+当前接口文档已补充：
+
+- 接口摘要与用途说明
+- 请求头与路径参数说明
+- 成功响应示例
+- 常见错误响应示例
+- Schema 字段说明与示例
+
+## Docker 部署
+
+项目提供完整的一键部署链路：
+
+- `Dockerfile`：多阶段构建，生成后端运行镜像
+- `docker-compose.yml`：编排 `api / bot / worker / db / redis`
+- `deploy.sh`：检查环境、构建镜像并后台启动服务
+- `.env.example`：环境变量模板
+
+标准部署步骤：
+
+1. 复制环境变量
+
+```bash
+cp .env.example .env
+```
+
+2. 填写 `.env`
+
+至少补齐：
+
+- `ADMIN_API_TOKEN`
+- `POSTGRES_PASSWORD`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_ADMIN_USER_ID`
+
+3. 执行部署
+
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
+
+4. 验证服务
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/docs
 ```
 
 ## 测试服务器执行情况

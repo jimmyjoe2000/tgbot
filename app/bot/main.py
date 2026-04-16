@@ -3,6 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher
 
 from app.bot.handlers import router
+from app.bot.menus import configure_bot_commands
 from app.core.config import settings
 from app.db.init_db import init_models
 
@@ -16,6 +17,7 @@ async def run_bot() -> None:
     await init_models()
 
     bot = Bot(token=settings.telegram_bot_token)
+    await configure_bot_commands(bot)
     dispatcher = Dispatcher()
     dispatcher.include_router(router)
     await dispatcher.start_polling(bot)
@@ -27,4 +29,3 @@ def cli() -> None:
 
 if __name__ == "__main__":
     cli()
-
